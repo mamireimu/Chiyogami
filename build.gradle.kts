@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    remapper("net.fabricmc:tiny-remapper:0.10.2:fat") // Must be kept in sync with upstream
+    remapper("net.fabricmc:tiny-remapper:0.10.3:fat") // Must be kept in sync with upstream
     decompiler("org.vineflower:vineflower:1.10.1") // Must be kept in sync with upstream
     paperclip("io.papermc:paperclip:3.0.3") // You probably want this to be kept in sync with upstream
 }
@@ -51,7 +51,7 @@ subprojects {
 }
 
 paperweight {
-    serverProject = project(":forktest-server")
+    serverProject = project(":chiyogami-server")
 
     remapRepo = paperMavenPublicUrl
     decompileRepo = paperMavenPublicUrl
@@ -59,10 +59,10 @@ paperweight {
     usePaperUpstream(providers.gradleProperty("paperRef")) {
         withPaperPatcher {
             apiPatchDir = layout.projectDirectory.dir("patches/api")
-            apiOutputDir = layout.projectDirectory.dir("forktest-api")
+            apiOutputDir = layout.projectDirectory.dir("chiyogami-api")
 
             serverPatchDir = layout.projectDirectory.dir("patches/server")
-            serverOutputDir = layout.projectDirectory.dir("forktest-server")
+            serverOutputDir = layout.projectDirectory.dir("chiyogami-server")
 
         }
         patchTasks.register("generatedApi") {
@@ -79,11 +79,11 @@ paperweight {
 //
 
 tasks.generateDevelopmentBundle {
-    apiCoordinates = "com.example.paperfork:forktest-api"
+    apiCoordinates = "com.github.bea4dev:chiyogami-api"
     libraryRepositories = listOf(
         "https://repo.maven.apache.org/maven2/",
         paperMavenPublicUrl,
-        // "https://my.repo/", // This should be a repo hosting your API (in this example, 'com.example.paperfork:forktest-api')
+        // "https://my.repo/", // This should be a repo hosting your API (in this example, 'com.github.bea4dev:chiyogami-api')
     )
 }
 
