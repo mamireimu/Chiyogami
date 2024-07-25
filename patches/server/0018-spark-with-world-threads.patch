@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Thu, 25 Jul 2024 21:33:18 +0900
+Subject: [PATCH] spark with world threads
+
+
+diff --git a/src/main/java/io/papermc/paper/SparksFly.java b/src/main/java/io/papermc/paper/SparksFly.java
+index 19ee43e1ca053574a0151b4c43b01972183657e6..27e42adbdf9d7db02a693626e71dc9c493387237 100644
+--- a/src/main/java/io/papermc/paper/SparksFly.java
++++ b/src/main/java/io/papermc/paper/SparksFly.java
+@@ -81,6 +81,26 @@ public final class SparksFly {
+                 }
+             }
+         });
++        // Chiyogami start - spark with world thread
++        try {
++            java.lang.reflect.Field gameThreadDumper = me.lucko.spark.paper.PaperSparkPlugin.class.getDeclaredField("gameThreadDumper");
++            java.lang.reflect.Field platform = me.lucko.spark.paper.PaperSparkPlugin.class.getDeclaredField("platform");
++            //gameThreadDumper.setAccessible(true);
++            //ChiyogamiThreadDumper threadDumper = new ChiyogamiThreadDumper();
++            //gameThreadDumper.set(this.spark, threadDumper);
++            platform.setAccessible(true);
++            me.lucko.spark.paper.common.SparkPlatform platformObject = (me.lucko.spark.paper.common.SparkPlatform) platform.get(this.spark);
++            me.lucko.spark.paper.common.util.Configuration configuration = platformObject.getConfiguration();
++            if (configuration.getString("backgroundProfilerThreadDumper", "default").equals("default")) {
++                String worldThreads = java.util.stream.IntStream.rangeClosed(0, 64)
++                    .mapToObj(i -> "WorldTickThread[" + i + "]")
++                    .collect(java.util.stream.Collectors.joining(","));
++                configuration.setString("backgroundProfilerThreadDumper", "Server thread," + worldThreads);
++            }
++            //platform.set(this.spark, new me.lucko.spark.paper.common.SparkPlatform((me.lucko.spark.paper.common.SparkPlugin) this.spark));
++        } catch (Exception e) {
++            SparksFly.this.logger.log(Level.SEVERE, "Failed to initialize Spark ChiyogamiThreadDumper", e);
++        }
+     }
+ 
+     public void enableEarlyIfRequested() {

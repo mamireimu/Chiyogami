@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Thu, 25 Jul 2024 21:44:11 +0900
+Subject: [PATCH] world thread watchdog
+
+
+diff --git a/src/main/java/org/spigotmc/WatchdogThread.java b/src/main/java/org/spigotmc/WatchdogThread.java
+index f7a4fee9bb25ff256dc2e5ea26bfbceca6a49167..7205468f7da7ca0718ac08de3c89ba9cf16c81eb 100644
+--- a/src/main/java/org/spigotmc/WatchdogThread.java
++++ b/src/main/java/org/spigotmc/WatchdogThread.java
+@@ -193,7 +193,14 @@ public class WatchdogThread extends ca.spottedleaf.moonrise.common.util.TickThre
+                 ca.spottedleaf.moonrise.patches.chunk_system.scheduling.ChunkTaskScheduler.dumpAllChunkLoadInfo(MinecraftServer.getServer(), isLongTimeout); // Paper - rewrite chunk system
+                 this.dumpTickingInfo(); // Paper - log detailed tick information
+                 WatchdogThread.dumpThread( ManagementFactory.getThreadMXBean().getThreadInfo( MinecraftServer.getServer().serverThread.getId(), Integer.MAX_VALUE ), log );
+-                log.log( Level.SEVERE, "------------------------------" );
++                // Chiyogami start - dump world thread info
++                for (net.minecraft.server.level.ServerLevel level : MinecraftServer.getServer().getAllLevels()) {
++                    log.log( Level.SEVERE, "------------------------------" );
++                    log.log( Level.SEVERE, "World thread dump : " + level.getWorld().getName() );
++                    WatchdogThread.dumpThread( ManagementFactory.getThreadMXBean().getThreadInfo( level.worldThread.getCurrentThread().threadId(), Integer.MAX_VALUE ), log );
++                    log.log( Level.SEVERE, "------------------------------" );
++                }
++                // Chiyogami end
+                 //
+                 // Paper start - Only print full dump on long timeouts
+                 if ( isLongTimeout )
