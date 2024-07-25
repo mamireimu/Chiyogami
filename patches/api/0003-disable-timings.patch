@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Wed, 24 Jul 2024 20:25:58 +0900
+Subject: [PATCH] disable timings
+
+
+diff --git a/src/main/java/co/aikar/timings/Timings.java b/src/main/java/co/aikar/timings/Timings.java
+index e81d0bc309de877ed2b5da6122f55c162e9b5f10..bfcb557be5b98209d948018232b609a357977cca 100644
+--- a/src/main/java/co/aikar/timings/Timings.java
++++ b/src/main/java/co/aikar/timings/Timings.java
+@@ -50,8 +50,10 @@ public final class Timings {
+     final static List<CommandSender> requestingReport = Lists.newArrayList();
+     private static final int MAX_HISTORY_FRAMES = 12;
+     public static final Timing NULL_HANDLER = new NullTimingHandler();
+-    static boolean timingsEnabled = false;
+-    static boolean verboseEnabled = false;
++    // Chiyogami - disable timings
++    static final boolean timingsEnabled = false;
++    static final boolean verboseEnabled = false;
++    // Chiyogami end
+     private static int historyInterval = -1;
+     private static int historyLength = -1;
+     private static boolean warnedAboutDeprecationOnEnable;
+@@ -145,7 +147,7 @@ public final class Timings {
+      * @param enabled Should timings be reported
+      */
+     public static void setTimingsEnabled(boolean enabled) {
+-        timingsEnabled = enabled;
++        //timingsEnabled = enabled; // Chiyogami - disable timings
+         warnAboutDeprecationOnEnable();
+         reset();
+     }
+@@ -194,7 +196,7 @@ public final class Timings {
+      * @param enabled Should high-frequency timings be reported
+      */
+     public static void setVerboseTimingsEnabled(boolean enabled) {
+-        verboseEnabled = enabled;
++        //verboseEnabled = enabled; // Chiyogami - disable timings
+         TimingsManager.needsRecheckEnabled = true;
+     }
+ 
+diff --git a/src/main/java/co/aikar/timings/TimingsManager.java b/src/main/java/co/aikar/timings/TimingsManager.java
+index e72ad05abada04426e32a73d02b21cb69079d268..cc37c9768d70117804a41f8f60b39ced73c5609c 100644
+--- a/src/main/java/co/aikar/timings/TimingsManager.java
++++ b/src/main/java/co/aikar/timings/TimingsManager.java
+@@ -94,7 +94,7 @@ public final class TimingsManager {
+         }
+     }
+     static void stopServer() {
+-        Timings.timingsEnabled = false;
++        //Timings.timingsEnabled = false; // Chiyogami - disable timings
+         recheckEnabled();
+     }
+     static void recheckEnabled() {

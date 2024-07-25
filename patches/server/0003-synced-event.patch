@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Tue, 23 Jul 2024 17:57:01 +0900
+Subject: [PATCH] synced event
+
+
+diff --git a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
+index 7ce9ebba8ce304d1f3f21d4f15ee5f3560d7700b..ee087a5c8aa1dd3f449b51efd42708dfbabb62d8 100644
+--- a/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
++++ b/src/main/java/io/papermc/paper/plugin/manager/PaperEventManager.java
+@@ -26,7 +26,9 @@ import java.util.Map;
+ import java.util.Set;
+ import java.util.logging.Level;
+ 
+-class PaperEventManager {
++public class PaperEventManager {
++    public static boolean synchronizedEvent = true; // Chiyogami
++    private final java.util.concurrent.locks.ReentrantLock EVENT_LOCK = new world.chiyogami.thread.WorldThreadSafeLock(true); // Chiyogami
+ 
+     private final Server server;
+ 
+@@ -36,6 +38,21 @@ class PaperEventManager {
+ 
+     // SimplePluginManager
+     public void callEvent(@NotNull Event event) {
++        // Chiyogami start - synced event
++        boolean shouldSync = synchronizedEvent && !event.isAsynchronous();
++        if (shouldSync) {
++            EVENT_LOCK.lock();
++            try {
++                callEventInternal(event);
++            } finally {
++                EVENT_LOCK.unlock();
++            }
++        } else {
++            callEventInternal(event);
++        }
++    }
++
++    /*public*/private void callEventInternal(@NotNull Event event) { // Chiyogami end
+         if (event.isAsynchronous() && this.server.isPrimaryThread()) {
+             throw new IllegalStateException(event.getEventName() + " may only be triggered asynchronously.");
+         } else if (!event.isAsynchronous() && !this.server.isPrimaryThread() && !this.server.isStopping()) {
+diff --git a/src/main/java/world/chiyogami/config/ChiyogamiConfig.java b/src/main/java/world/chiyogami/config/ChiyogamiConfig.java
+index 5b905dfe18a47166aaa37b31c326fd20a0ccfd1c..8dacd2f36395bedd25d4ce97822a83bd8be8b079 100644
+--- a/src/main/java/world/chiyogami/config/ChiyogamiConfig.java
++++ b/src/main/java/world/chiyogami/config/ChiyogamiConfig.java
+@@ -1,6 +1,7 @@
+ package world.chiyogami.config;
+ 
+ 
++import io.papermc.paper.plugin.manager.PaperEventManager;
+ import org.bukkit.configuration.file.YamlConfiguration;
+ import org.bukkit.plugin.SimplePluginManager;
+ import world.chiyogami.log.ChiyogamiLogger;
+@@ -100,7 +101,7 @@ public final class ChiyogamiConfig {
+             
+             ChiyogamiLogger.isShowLogs = SHOW_CHIYOGAMI_LOG.getValue();
+             
+-            SimplePluginManager.synchronizedEvent = SYNCHRONIZED_EVENT.getValue();
++            PaperEventManager.synchronizedEvent = SYNCHRONIZED_EVENT.getValue();
+             
+             //ParallelWorldBridge.parallelWorldBridge = PARALLEL_WORLD_BRIDGE.getValue();
+             

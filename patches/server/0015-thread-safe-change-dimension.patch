@@ -1,0 +1,55 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Wed, 24 Jul 2024 21:09:27 +0900
+Subject: [PATCH] thread safe change dimension
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index b736c92041455cf7ef9857fee3775874c0e44b64..04c939ade820a93d58f60777e750fa4101aeb9f7 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -3780,6 +3780,9 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+                 worldserver.getProfiler().push("changeDimension");
+                 Entity entity2 = worldserver1.dimension() == worldserver.dimension() ? this : this.getType().create(worldserver1);
+ 
++                // Chiyogami start - thread safe teleport
++                DimensionTransition finalTeleportTarget = teleportTarget;
++                java.util.function.Supplier<Entity> task = () -> {
+                 if (entity2 != null) {
+                     if (this != entity2) {
+                         // Paper start - Fix item duplication and teleport issues
+@@ -3795,8 +3798,8 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+                         // CraftBukkit end
+                     }
+ 
+-                    entity2.moveTo(teleportTarget.pos().x, teleportTarget.pos().y, teleportTarget.pos().z, teleportTarget.yRot(), entity2.getXRot());
+-                    entity2.setDeltaMovement(teleportTarget.speed());
++                    entity2.moveTo(finalTeleportTarget.pos().x, finalTeleportTarget.pos().y, finalTeleportTarget.pos().z, finalTeleportTarget.yRot(), entity2.getXRot());
++                    entity2.setDeltaMovement(finalTeleportTarget.speed());
+                     if (this != entity2 && this.inWorld) { // CraftBukkit - Don't spawn the new entity if the current entity isn't spawned
+                         worldserver1.addDuringTeleport(entity2);
+                     }
+@@ -3804,17 +3807,20 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+                     Iterator iterator1 = list1.iterator();
+ 
+                     while (iterator1.hasNext()) {
+-                        entity = (Entity) iterator1.next();
+-                        entity.startRiding(entity2, true);
++                        Entity entity1 = (Entity) iterator1.next();
++                        entity1.startRiding(entity2, true);
+                     }
+ 
+                     worldserver.resetEmptyTime();
+                     worldserver1.resetEmptyTime();
+-                    teleportTarget.postDimensionTransition().onTransition(entity2);
++                    finalTeleportTarget.postDimensionTransition().onTransition(entity2);
+                 }
+ 
+                 worldserver.getProfiler().pop();
+                 return entity2;
++                };
++                return worldserver.worldThread.runWorldTaskThreadSafely(worldserver1.worldThread, new world.chiyogami.thread.WorldTask<>(task), "NMS change dimension");
++                // Chiyogami end
+             }
+         }
+ 

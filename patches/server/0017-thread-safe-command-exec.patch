@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Thu, 25 Jul 2024 17:33:12 +0900
+Subject: [PATCH] thread safe command exec
+
+
+diff --git a/src/main/java/net/minecraft/world/level/BaseCommandBlock.java b/src/main/java/net/minecraft/world/level/BaseCommandBlock.java
+index e6bfcc50cdf728216084bc00a5bb8b6b3b8f72e4..d2f3f41a97f277e588277a1687e896117b07d6c0 100644
+--- a/src/main/java/net/minecraft/world/level/BaseCommandBlock.java
++++ b/src/main/java/net/minecraft/world/level/BaseCommandBlock.java
+@@ -22,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
+ 
+ public abstract class BaseCommandBlock implements CommandSource {
+ 
+-    private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("HH:mm:ss");
++    private static final java.lang.ThreadLocal<SimpleDateFormat> TIME_FORMAT = java.lang.ThreadLocal.withInitial(() -> new SimpleDateFormat("HH:mm:ss")); // Chiyogami - thread safe command exec
+     private static final Component DEFAULT_NAME = Component.literal("@");
+     private long lastExecution = -1L;
+     private boolean updateLastExecution = true;
+@@ -116,7 +116,7 @@ public abstract class BaseCommandBlock implements CommandSource {
+         return this.command;
+     }
+ 
+-    public boolean performCommand(Level world) {
++    public synchronized boolean performCommand(Level world) { // Chiyogami - thread safe command exec
+         if (!world.isClientSide && world.getGameTime() != this.lastExecution) {
+             if ("Searge".equalsIgnoreCase(this.command)) {
+                 this.lastOutput = Component.literal("#itzlipofutzli");
+@@ -179,7 +179,7 @@ public abstract class BaseCommandBlock implements CommandSource {
+     public void sendSystemMessage(Component message) {
+         if (this.trackOutput) {
+             org.spigotmc.AsyncCatcher.catchOp("sendSystemMessage to a command block"); // Paper - Don't broadcast messages to command blocks
+-            SimpleDateFormat simpledateformat = BaseCommandBlock.TIME_FORMAT;
++            SimpleDateFormat simpledateformat = BaseCommandBlock.TIME_FORMAT.get();  // Chiyogami - thread safe command exec
+             Date date = new Date();
+ 
+             this.lastOutput = Component.literal("[" + simpledateformat.format(date) + "] ").append(message);

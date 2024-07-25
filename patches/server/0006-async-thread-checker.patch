@@ -1,0 +1,29 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Tue, 23 Jul 2024 18:17:36 +0900
+Subject: [PATCH] async thread checker
+
+
+diff --git a/src/main/java/org/spigotmc/AsyncCatcher.java b/src/main/java/org/spigotmc/AsyncCatcher.java
+index 1f23e775eba1c34e01145bd91b0ce26fed6ca9de..9eda615ef55e2e65567668c5db9bdf3beb46eec7 100644
+--- a/src/main/java/org/spigotmc/AsyncCatcher.java
++++ b/src/main/java/org/spigotmc/AsyncCatcher.java
+@@ -9,10 +9,17 @@ public class AsyncCatcher
+ 
+     public static void catchOp(String reason)
+     {
+-        if (!ca.spottedleaf.moonrise.common.util.TickThread.isTickThread()) // Paper // Paper - rewrite chunk system
++        if (isAsync()) // Paper // Paper - rewrite chunk system // Chiyogami
+         {
+             MinecraftServer.LOGGER.error("Thread " + Thread.currentThread().getName() + " failed main thread check: " + reason, new Throwable()); // Paper
+             throw new IllegalStateException( "Asynchronous " + reason + "!" );
+         }
+     }
++    //Chiyogami start - async thread checker
++    public static boolean isAsync() {
++        return !world.chiyogami.thread.WorldThreadPool.isWorldThread() && !isMainThread() && !ca.spottedleaf.moonrise.common.util.TickThread.isTickThread();
++    }
++
++    public static boolean isMainThread() {return MinecraftServer.getServer().serverThread == Thread.currentThread();}
++    //Chiyogami end
+ }

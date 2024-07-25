@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Tue, 23 Jul 2024 18:08:53 +0900
+Subject: [PATCH] world thread patch 1
+
+
+diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
+index e2a0487089eb5a7bdc1433e4c75f69d8e9f9d5f9..d49fbc94976de47efe023c3688e3fb06c0e0046e 100644
+--- a/src/main/java/net/minecraft/world/level/Level.java
++++ b/src/main/java/net/minecraft/world/level/Level.java
+@@ -121,6 +121,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+     private final List<TickingBlockEntity> pendingBlockEntityTickers = Lists.newArrayList();
+     private boolean tickingBlockEntities;
+     public final Thread thread;
++    public final world.chiyogami.thread.WorldThread worldThread = new world.chiyogami.thread.WorldThread(this); // Chiyogami
+     private final boolean isDebug;
+     private int skyDarken;
+     protected int randValue = RandomSource.create().nextInt();
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+index 362ca138a5cd5ad19f1300015c2571794adc3649..9e54d43ab2f69e124e71ff2cdbdf2fa077c6b126 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+@@ -2475,4 +2475,21 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+         return this.adventure$pointers;
+     }
+     // Paper end
++
++    // Chiyogami start - thread
++    @Override
++    public void scheduleTask(Runnable runnable, long period, long delay) {
++        if (runnable instanceof world.chiyogami.thread.WorldThreadRunnable) {
++            world.chiyogami.thread.WorldThread worldThread = this.getHandle().worldThread;
++            worldThread.scheduleWorldThreadRunnable((world.chiyogami.thread.WorldThreadRunnable) runnable);
++        } else {
++            new world.chiyogami.thread.WorldThreadRunnable() {
++                @Override
++                public void run() {
++                    runnable.run();
++                }
++            }.runTaskTimer(this, delay, period);
++        }
++    }
++    // Chiyogami end
+ }

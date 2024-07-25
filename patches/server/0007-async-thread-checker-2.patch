@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Tue, 23 Jul 2024 18:22:59 +0900
+Subject: [PATCH] async thread checker 2
+
+
+diff --git a/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java b/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
+index b3bac1beeb0b4be8e110a61acf46740d556801ef..ac225b8004bec4eb290507cd55289f8aa441f4dd 100644
+--- a/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
++++ b/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
+@@ -90,7 +90,7 @@ public class TickThread extends Thread {
+     }
+ 
+     public static boolean isTickThread() {
+-        return Thread.currentThread() instanceof TickThread;
++        /*return Thread.currentThread() instanceof TickThread;*/return !org.spigotmc.AsyncCatcher.isAsync(); // Chiyogami
+     }
+ 
+     public static boolean isShutdownThread() {

@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Wed, 24 Jul 2024 18:55:15 +0900
+Subject: [PATCH] thread safe teleport
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 1f7594e22f0f08ae110ef9b42f15119358aa5723..b736c92041455cf7ef9857fee3775874c0e44b64 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -25,6 +25,7 @@ import java.util.UUID;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.function.BiConsumer;
+ import java.util.function.Predicate;
++import java.util.function.Supplier;
+ import java.util.stream.Stream;
+ import javax.annotation.Nullable;
+ import net.minecraft.BlockUtil;
+@@ -165,6 +166,7 @@ import org.bukkit.event.entity.EntityUnleashEvent;
+ import org.bukkit.event.entity.EntityUnleashEvent.UnleashReason;
+ import org.bukkit.event.player.PlayerTeleportEvent;
+ import org.bukkit.plugin.PluginManager;
++import world.chiyogami.thread.WorldTask;
+ // CraftBukkit end
+ 
+ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess, CommandSource, ScoreHolder, ca.spottedleaf.moonrise.patches.chunk_system.entity.ChunkSystemEntity, ca.spottedleaf.moonrise.patches.entity_tracker.EntityTrackerEntity { // Paper - rewrite chunk system // Paper - optimise entity tracker
+@@ -3992,6 +3994,7 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+             this.teleportPassengers();
+             this.setYHeadRot(yaw);
+         } else {
++            Supplier<Boolean> teleportTask = () -> { // Chiyogami - thread safe teleport
+             this.unRide();
+             Entity entity = this.getType().create(world);
+ 
+@@ -4008,6 +4011,10 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess
+                 world.addDuringTeleport(entity);
+             }
+             // CraftBukkit end
++            // Chiyogami start - thread safe teleport
++            return true;};
++            return this.level().worldThread.runWorldTaskThreadSafely(world.worldThread, new WorldTask<>(teleportTask), "NMS Entity teleport");
++            // Chiyogami end
+         }
+ 
+         return true;

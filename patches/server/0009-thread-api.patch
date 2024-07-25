@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Tue, 23 Jul 2024 18:41:40 +0900
+Subject: [PATCH] thread api
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+index c8b82bc41f2042bb4b067f06265a3a22e51f7629..46355ef255ed1bf5dba9935a51c8b85ecbc0cfca 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
+@@ -2515,6 +2515,16 @@ public final class CraftServer implements Server {
+     public boolean isPrimaryThread() {
+         return ca.spottedleaf.moonrise.common.util.TickThread.isTickThread(); // Paper - rewrite chunk system
+     }
++    // Chiyogami start - thread api
++    @Override
++    public boolean isMainThread() {
++        return org.spigotmc.AsyncCatcher.isMainThread();
++    }
++
++    @Override
++    public boolean isWorldThread() {
++        return world.chiyogami.thread.WorldThreadPool.isWorldThread();
++    } // Chiyogami end
+ 
+     // Paper start - Adventure
+     @Override

@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Tue, 23 Jul 2024 19:26:26 +0900
+Subject: [PATCH] world threading
+
+
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 9325d6f95165a7cee00d7de736af723681cc16b4..215cb09e39cb1a9a0cd83ec4fbca2dc3b25b58cd 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -382,6 +382,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+     @Override
+     public final void moonrise$executeMidTickTasks() {
++        if (!Bukkit.isMainThread()) return; // Chiyogami - world threading
+         final long startTime = System.nanoTime();
+         if ((startTime - this.lastMidTickExecute) <= CHUNK_TASK_QUEUE_BACKOFF_MIN_TIME || (startTime - this.lastMidTickExecuteFailure) <= TASK_EXECUTION_FAILURE_BACKOFF) {
+             // it's shown to be bad to constantly hit the queue (chunk loads slow to a crawl), even if no tasks are executed.
+@@ -1780,6 +1781,12 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         Iterator iterator = this.getAllLevels().iterator(); // Paper - Throw exception on world create while being ticked; move down
+         while (iterator.hasNext()) {
+             ServerLevel worldserver = (ServerLevel) iterator.next();
++            // Chiyogami start - world threading
++            world.chiyogami.thread.WorldThread worldThread = worldserver.worldThread;
++            if (worldThread.getWorldTickRunnable() == null) {
++            worldThread.setWorldTickRunnable(() -> {
++            worldserver.thread = Thread.currentThread();
++            // Chiyogami end
+             worldserver.hasPhysicsEvent = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - BlockPhysicsEvent
+             worldserver.hasEntityMoveEvent = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - Add EntityMoveEvent
+             net.minecraft.world.level.block.entity.HopperBlockEntity.skipHopperEvents = worldserver.paperConfig().hopper.disableMoveEvent || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper - Perf: Optimize Hoppers
+@@ -1814,7 +1821,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             this.profiler.pop();
+             this.profiler.pop();
+             worldserver.explosionDensityCache.clear(); // Paper - Optimize explosions
++            });} // Chiyogami - world threading
+         }
++        world.chiyogami.thread.WorldThreadPool.doTick(this.levels.values()); // Chiyogami - world threading
+         this.isIteratingOverLevels = false; // Paper - Throw exception on world create while being ticked
+ 
+         this.profiler.popPush("connection");
+diff --git a/src/main/java/net/minecraft/world/level/Level.java b/src/main/java/net/minecraft/world/level/Level.java
+index d49fbc94976de47efe023c3688e3fb06c0e0046e..7f4cb196d267ebd7543a57cf20c0f9f3972ad180 100644
+--- a/src/main/java/net/minecraft/world/level/Level.java
++++ b/src/main/java/net/minecraft/world/level/Level.java
+@@ -120,7 +120,7 @@ public abstract class Level implements LevelAccessor, AutoCloseable, ca.spottedl
+     protected final NeighborUpdater neighborUpdater;
+     private final List<TickingBlockEntity> pendingBlockEntityTickers = Lists.newArrayList();
+     private boolean tickingBlockEntities;
+-    public final Thread thread;
++    public Thread thread;
+     public final world.chiyogami.thread.WorldThread worldThread = new world.chiyogami.thread.WorldThread(this); // Chiyogami
+     private final boolean isDebug;
+     private int skyDarken;

@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Wed, 24 Jul 2024 19:58:10 +0900
+Subject: [PATCH] parallel bridge
+
+
+diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+index 7796e191747be545e744564a2b0b65790f69114d..ac2b7cb77c48804fd5e1c313ece29a90e60de7f1 100644
+--- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
++++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
+@@ -260,6 +260,7 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+     private static final Component INVALID_COMMAND_SIGNATURE = Component.translatable("chat.disabled.invalid_command_signature").withStyle(ChatFormatting.RED);
+     private static final int MAX_COMMAND_SUGGESTIONS = 1000;
+     public ServerPlayer player;
++    @Nullable public world.chiyogami.bridge.ParallelEntityMoveHandler parallelEntityMoveHandler = null; // Chiyogami - parallel bridge
+     public final PlayerChunkSender chunkSender;
+     private int tickCount;
+     private int ackBlockChangesUpTo = -1;
+@@ -1424,6 +1425,7 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+                                 }
+                                 // Paper end - Add PlayerJumpEvent
+                             }
++                            org.bukkit.util.BoundingBox oldBox = this.player.getBukkitEntity().getBoundingBox(); // Chiyogami - parallel bridge
+ 
+                             boolean flag2 = this.player.verticalCollisionBelow;
+ 
+@@ -1460,6 +1462,14 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+ 
+                             // Paper start - Add fail move event
+                             boolean teleportBack = !this.player.noPhysics && !this.player.isSleeping() && (movedWrongly && worldserver.noCollision(this.player, axisalignedbb) || this.isPlayerCollidingWithAnythingNew(worldserver, axisalignedbb, d0, d1, d2));
++                            // Chiyogami start - parallel bridge
++                            if (teleportBack) {
++                                world.chiyogami.bridge.ParallelEntityMoveHandler moveHandler = this.parallelEntityMoveHandler;
++                                if (moveHandler != null) {
++                                    org.bukkit.util.Vector movement = new org.bukkit.util.Vector(toX - lastPosX, toY - lastPosY, toZ - lastPosZ);
++                                    teleportBack = moveHandler.tryToMoveBoundingBox(oldBox, movement);
++                                }
++                            } // Chiyogami end
+                             if (teleportBack) {
+                                 io.papermc.paper.event.player.PlayerFailMoveEvent event = fireFailMove(io.papermc.paper.event.player.PlayerFailMoveEvent.FailReason.CLIPPED_INTO_BLOCK,
+                                     toX, toY, toZ, toYaw, toPitch, false);
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index 43eeb8ce4bc350c2b524ade11ca25d8d4d21bea5..a009f452ae0b22a26d05c38a323e90c76ab95c5c 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -345,6 +345,7 @@ public abstract class PlayerList {
+ 
+         PlayerJoinEvent playerJoinEvent = new PlayerJoinEvent(bukkitPlayer, io.papermc.paper.adventure.PaperAdventure.asAdventure(ichatmutablecomponent)); // Paper - Adventure
+         this.cserver.getPluginManager().callEvent(playerJoinEvent);
++        playerconnection.parallelEntityMoveHandler = world.chiyogami.bridge.ParallelBridge.getParallelEntityMoveHandler(player.getBukkitEntity()); // Chiyogami - parallel bridge
+ 
+         if (!player.connection.isAcceptingMessages()) {
+             return;
+diff --git a/src/main/java/world/chiyogami/bridge/ParallelBridge.java b/src/main/java/world/chiyogami/bridge/ParallelBridge.java
+index 98fb8adae48085586068f6c7ef056857cf8a9b31..40ece2acca0775569cc70e745e6ee8ecbf3af322 100644
+--- a/src/main/java/world/chiyogami/bridge/ParallelBridge.java
++++ b/src/main/java/world/chiyogami/bridge/ParallelBridge.java
+@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
+ 
+ public class ParallelBridge {
+     
+-    public static boolean parallelWorldBridge = false;
++    public static boolean parallelWorldBridge = true;
+     
+     private static final Map<Player, ParallelEntityMoveHandler> parallelEntityMoveHandlerMap = new ConcurrentHashMap<>();
+     

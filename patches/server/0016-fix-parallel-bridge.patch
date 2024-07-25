@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Wed, 24 Jul 2024 21:23:09 +0900
+Subject: [PATCH] fix parallel bridge
+
+
+diff --git a/src/main/java/world/chiyogami/bridge/ParallelBridge.java b/src/main/java/world/chiyogami/bridge/ParallelBridge.java
+index 40ece2acca0775569cc70e745e6ee8ecbf3af322..98fb8adae48085586068f6c7ef056857cf8a9b31 100644
+--- a/src/main/java/world/chiyogami/bridge/ParallelBridge.java
++++ b/src/main/java/world/chiyogami/bridge/ParallelBridge.java
+@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
+ 
+ public class ParallelBridge {
+     
+-    public static boolean parallelWorldBridge = true;
++    public static boolean parallelWorldBridge = false;
+     
+     private static final Map<Player, ParallelEntityMoveHandler> parallelEntityMoveHandlerMap = new ConcurrentHashMap<>();
+     
+diff --git a/src/main/java/world/chiyogami/config/ChiyogamiConfig.java b/src/main/java/world/chiyogami/config/ChiyogamiConfig.java
+index 8dacd2f36395bedd25d4ce97822a83bd8be8b079..363898ae9a5eba416da181077fdceaee194c1bd5 100644
+--- a/src/main/java/world/chiyogami/config/ChiyogamiConfig.java
++++ b/src/main/java/world/chiyogami/config/ChiyogamiConfig.java
+@@ -21,7 +21,6 @@ public final class ChiyogamiConfig {
+     private static final ConfigComponent<Integer> MAX_WORLD_THREADS = new ConfigComponent<>("max-world-threads", 0, 0);
+     private static final ConfigComponent<Boolean> SHOW_CHIYOGAMI_LOG = new ConfigComponent<>("show-detail-log", true, 0);
+     private static final ConfigComponent<Boolean> SYNCHRONIZED_EVENT = new ConfigComponent<>("synchronized-event", true, 1);
+-    private static final ConfigComponent<Boolean> PARALLEL_WORLD_BRIDGE = new ConfigComponent<>("parallel-world-bridge", false, 2);
+     
+     
+     private static void setDefaultValues(YamlConfiguration yml){

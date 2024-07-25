@@ -1,0 +1,68 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Tue, 23 Jul 2024 18:31:36 +0900
+Subject: [PATCH] async thread checker 3
+
+
+diff --git a/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java b/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
+index ac225b8004bec4eb290507cd55289f8aa441f4dd..b3bac1beeb0b4be8e110a61acf46740d556801ef 100644
+--- a/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
++++ b/src/main/java/ca/spottedleaf/moonrise/common/util/TickThread.java
+@@ -90,7 +90,7 @@ public class TickThread extends Thread {
+     }
+ 
+     public static boolean isTickThread() {
+-        /*return Thread.currentThread() instanceof TickThread;*/return !org.spigotmc.AsyncCatcher.isAsync(); // Chiyogami
++        return Thread.currentThread() instanceof TickThread;
+     }
+ 
+     public static boolean isShutdownThread() {
+diff --git a/src/main/java/org/spigotmc/AsyncCatcher.java b/src/main/java/org/spigotmc/AsyncCatcher.java
+index 9eda615ef55e2e65567668c5db9bdf3beb46eec7..f1ca33b8a190c481eeb0a805a77e77c57bc09c61 100644
+--- a/src/main/java/org/spigotmc/AsyncCatcher.java
++++ b/src/main/java/org/spigotmc/AsyncCatcher.java
+@@ -17,7 +17,7 @@ public class AsyncCatcher
+     }
+     //Chiyogami start - async thread checker
+     public static boolean isAsync() {
+-        return !world.chiyogami.thread.WorldThreadPool.isWorldThread() && !isMainThread() && !ca.spottedleaf.moonrise.common.util.TickThread.isTickThread();
++        return !isMainThread() && !ca.spottedleaf.moonrise.common.util.TickThread.isTickThread();
+     }
+ 
+     public static boolean isMainThread() {return MinecraftServer.getServer().serverThread == Thread.currentThread();}
+diff --git a/src/main/java/world/chiyogami/thread/WorldThreadPool.java b/src/main/java/world/chiyogami/thread/WorldThreadPool.java
+index a7e600159ad42307f06bb87be1d4de4b226a6278..e11677b2741a9650fce512bf6e3d0f8017f752c0 100644
+--- a/src/main/java/world/chiyogami/thread/WorldThreadPool.java
++++ b/src/main/java/world/chiyogami/thread/WorldThreadPool.java
+@@ -1,9 +1,11 @@
+ package world.chiyogami.thread;
+ 
++import ca.spottedleaf.moonrise.common.util.TickThread;
+ import net.minecraft.server.level.ServerLevel;
+ 
+ import java.util.*;
+ import java.util.concurrent.*;
++import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.locks.ReentrantLock;
+ 
+ public class WorldThreadPool {
+@@ -13,6 +15,8 @@ public class WorldThreadPool {
+     private static int maxPoolSize = 0;
+     
+     private static int previousPoolSize = 0;
++
++    private static final AtomicInteger threadCount = new AtomicInteger(0);
+     
+     public static void setMaxPoolSize(int poolSize) {WorldThreadPool.maxPoolSize = poolSize;}
+     
+@@ -51,7 +55,9 @@ public class WorldThreadPool {
+         
+         if(pool != previousPoolSize){
+             if(executorService != null) executorService.shutdown();
+-            executorService = Executors.newFixedThreadPool(pool);
++            executorService = Executors.newFixedThreadPool(pool, runnable ->
++                new TickThread(runnable, "WorldTickThread[" + threadCount.getAndIncrement() + "]")
++            );
+             previousPoolSize = pool;
+             worldThreadHashMap.clear();
+         }
