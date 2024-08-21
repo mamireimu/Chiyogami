@@ -17,10 +17,10 @@ index e2a0487089eb5a7bdc1433e4c75f69d8e9f9d5f9..d49fbc94976de47efe023c3688e3fb06
      private int skyDarken;
      protected int randValue = RandomSource.create().nextInt();
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-index 362ca138a5cd5ad19f1300015c2571794adc3649..9e54d43ab2f69e124e71ff2cdbdf2fa077c6b126 100644
+index ffd284f0e25c6f20672f7225aafd37e6c87ccf03..5d08442e7c18a0be7eb66c017e5bce846eb5eaaa 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
-@@ -2475,4 +2475,21 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+@@ -2470,4 +2470,21 @@ public class CraftWorld extends CraftRegionAccessor implements World {
          return this.adventure$pointers;
      }
      // Paper end

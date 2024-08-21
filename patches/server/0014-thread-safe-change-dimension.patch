@@ -5,7 +5,7 @@ Subject: [PATCH] thread safe change dimension
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index b736c92041455cf7ef9857fee3775874c0e44b64..04c939ade820a93d58f60777e750fa4101aeb9f7 100644
+index e49cf7a8258ef07ad39bc52cdc2e934bf955a978..a64416868a9d244e8914689b8da9369d6f4ce972 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -3780,6 +3780,9 @@ public abstract class Entity implements SyncedDataHolder, Nameable, EntityAccess

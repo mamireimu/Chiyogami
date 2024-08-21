@@ -5,10 +5,10 @@ Subject: [PATCH] thread api 2
 
 
 diff --git a/src/main/java/org/bukkit/Bukkit.java b/src/main/java/org/bukkit/Bukkit.java
-index 4705c1d91e39fcc3c608b1f1a38a30d063ccf06e..bf312e0ded6ea7bc506c6ff74695bbd7266ee6e6 100644
+index 419c056faf0d49d9b0435feb01252e87e227b9a9..a8e70825d7e6acd1a03dc3dc109072012e66abd4 100644
 --- a/src/main/java/org/bukkit/Bukkit.java
 +++ b/src/main/java/org/bukkit/Bukkit.java
-@@ -2045,6 +2045,29 @@ public final class Bukkit {
+@@ -2056,6 +2056,29 @@ public final class Bukkit {
      public static boolean isPrimaryThread() {
          return server.isPrimaryThread();
      }
@@ -39,10 +39,10 @@ index 4705c1d91e39fcc3c608b1f1a38a30d063ccf06e..bf312e0ded6ea7bc506c6ff74695bbd7
      // Paper start
      /**
 diff --git a/src/main/java/org/bukkit/Server.java b/src/main/java/org/bukkit/Server.java
-index c043d239c449bf4bb13a24467f2f6c67b4d28d2d..81fa57a2c56e8e51038c432e45fb31dbdd4e9300 100644
+index 5aa64ea39ebd92e5067c53cea49a8685c0b9eee4..624162ee7d4530473f9afa676836f69331eefebe 100644
 --- a/src/main/java/org/bukkit/Server.java
 +++ b/src/main/java/org/bukkit/Server.java
-@@ -1751,6 +1751,25 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
+@@ -1762,6 +1762,25 @@ public interface Server extends PluginMessageRecipient, net.kyori.adventure.audi
       *     false otherwise
       */
      boolean isPrimaryThread();

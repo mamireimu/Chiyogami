@@ -5,7 +5,7 @@ Subject: [PATCH] world threading
 
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 9325d6f95165a7cee00d7de736af723681cc16b4..215cb09e39cb1a9a0cd83ec4fbca2dc3b25b58cd 100644
+index 23ddd26af762c1cd7fb3920669abb96b3213ab37..835bd0fad47b437dd51f9b8386d0764b92cc99bd 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
 @@ -382,6 +382,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
@@ -16,7 +16,7 @@ index 9325d6f95165a7cee00d7de736af723681cc16b4..215cb09e39cb1a9a0cd83ec4fbca2dc3
          final long startTime = System.nanoTime();
          if ((startTime - this.lastMidTickExecute) <= CHUNK_TASK_QUEUE_BACKOFF_MIN_TIME || (startTime - this.lastMidTickExecuteFailure) <= TASK_EXECUTION_FAILURE_BACKOFF) {
              // it's shown to be bad to constantly hit the queue (chunk loads slow to a crawl), even if no tasks are executed.
-@@ -1780,6 +1781,12 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1781,6 +1782,12 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          Iterator iterator = this.getAllLevels().iterator(); // Paper - Throw exception on world create while being ticked; move down
          while (iterator.hasNext()) {
              ServerLevel worldserver = (ServerLevel) iterator.next();
@@ -29,7 +29,7 @@ index 9325d6f95165a7cee00d7de736af723681cc16b4..215cb09e39cb1a9a0cd83ec4fbca2dc3
              worldserver.hasPhysicsEvent = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - BlockPhysicsEvent
              worldserver.hasEntityMoveEvent = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - Add EntityMoveEvent
              net.minecraft.world.level.block.entity.HopperBlockEntity.skipHopperEvents = worldserver.paperConfig().hopper.disableMoveEvent || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper - Perf: Optimize Hoppers
-@@ -1814,7 +1821,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1815,7 +1822,9 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              this.profiler.pop();
              this.profiler.pop();
              worldserver.explosionDensityCache.clear(); // Paper - Optimize explosions

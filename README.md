@@ -8,8 +8,8 @@ Chiyogamiは [Paper](https://github.com/PaperMC/Paper) をフォークしたも�
 
 Other versions
 ------
-* [1.20.2](https://github.com/bea4dev/Chiyogami/tree/ver/1.20.2)
-* [1.19.2](https://github.com/bea4dev/Chiyogami/tree/ver/1.19.2)
+* [1.21.1](https://github.com/bea4dev/Chiyogami/tree/ver/1.21.1)
+* [1.21](https://github.com/bea4dev/Chiyogami/tree/ver/1.21)
 
 Notes
 ------

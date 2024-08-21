@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: bea4dev <bea0224@outlook.jp>
-Date: Wed, 24 Jul 2024 19:58:10 +0900
+Date: Wed, 21 Aug 2024 22:44:18 +0900
 Subject: [PATCH] parallel bridge
 
 
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 7796e191747be545e744564a2b0b65790f69114d..ac2b7cb77c48804fd5e1c313ece29a90e60de7f1 100644
+index b13057c0792067cc6b0abdf0d64a9be2cc9389a4..10c02831bb7095702f81425aedf1d7c7508da206 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 @@ -260,6 +260,7 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
@@ -16,7 +16,7 @@ index 7796e191747be545e744564a2b0b65790f69114d..ac2b7cb77c48804fd5e1c313ece29a90
      public final PlayerChunkSender chunkSender;
      private int tickCount;
      private int ackBlockChangesUpTo = -1;
-@@ -1424,6 +1425,7 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+@@ -1457,6 +1458,7 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
                                  }
                                  // Paper end - Add PlayerJumpEvent
                              }
@@ -24,10 +24,10 @@ index 7796e191747be545e744564a2b0b65790f69114d..ac2b7cb77c48804fd5e1c313ece29a90
  
                              boolean flag2 = this.player.verticalCollisionBelow;
  
-@@ -1460,6 +1462,14 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
- 
-                             // Paper start - Add fail move event
-                             boolean teleportBack = !this.player.noPhysics && !this.player.isSleeping() && (movedWrongly && worldserver.noCollision(this.player, axisalignedbb) || this.isPlayerCollidingWithAnythingNew(worldserver, axisalignedbb, d0, d1, d2));
+@@ -1503,6 +1505,14 @@ public class ServerGamePacketListenerImpl extends ServerCommonPacketListenerImpl
+                                     teleportBack = this.hasNewCollision(worldserver, this.player, axisalignedbb, newBox);
+                                 } // else: no collision at all detected, why do we care?
+                             }
 +                            // Chiyogami start - parallel bridge
 +                            if (teleportBack) {
 +                                world.chiyogami.bridge.ParallelEntityMoveHandler moveHandler = this.parallelEntityMoveHandler;
@@ -36,11 +36,11 @@ index 7796e191747be545e744564a2b0b65790f69114d..ac2b7cb77c48804fd5e1c313ece29a90
 +                                    teleportBack = moveHandler.tryToMoveBoundingBox(oldBox, movement);
 +                                }
 +                            } // Chiyogami end
+                             // Paper end - optimise out extra getCubes
                              if (teleportBack) {
                                  io.papermc.paper.event.player.PlayerFailMoveEvent event = fireFailMove(io.papermc.paper.event.player.PlayerFailMoveEvent.FailReason.CLIPPED_INTO_BLOCK,
-                                     toX, toY, toZ, toYaw, toPitch, false);
 diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
-index 43eeb8ce4bc350c2b524ade11ca25d8d4d21bea5..a009f452ae0b22a26d05c38a323e90c76ab95c5c 100644
+index 0368d6ba9cc9fe557d3c7172a87a7a5b15445e47..f6ce1b5a0226c3198cb762b69426c51da3eab807 100644
 --- a/src/main/java/net/minecraft/server/players/PlayerList.java
 +++ b/src/main/java/net/minecraft/server/players/PlayerList.java
 @@ -345,6 +345,7 @@ public abstract class PlayerList {
