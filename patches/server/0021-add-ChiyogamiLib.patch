@@ -1,0 +1,80 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Fri, 27 Sep 2024 00:14:33 +0900
+Subject: [PATCH] add ChiyogamiLib
+
+
+diff --git a/build.gradle.kts b/build.gradle.kts
+index 2326cdcef7bdac0b201370624c9bab70965039a0..2b5cda32b8ee062818e7a413ebffbd1286606c65 100644
+--- a/build.gradle.kts
++++ b/build.gradle.kts
+@@ -11,7 +11,11 @@ configurations.named(log4jPlugins.compileClasspathConfigurationName) {
+     extendsFrom(configurations.compileClasspath.get())
+ }
+ val alsoShade: Configuration by configurations.creating
+-
++// Chiyogami start - add ChiyogamiLib
++repositories {
++    maven("https://jitpack.io")
++}
++// Chiyogami end
+ dependencies {
+     implementation(project(":chiyogami-api")) // Chiyogami
+     // Paper start
+@@ -65,6 +69,9 @@ dependencies {
+     implementation("me.lucko:spark-api:0.1-20240720.200737-2")
+     implementation("me.lucko:spark-paper:1.10.84-20240720.204128-1")
+     // Paper end - spark
++    // Chiyogami start - add ChiyogamiLib
++    implementation("com.github.bea4dev:ChiyogamiLib:7ed1df4960")
++    // Chiyogami end
+ }
+ 
+ paperweight {
+diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
+index 835bd0fad47b437dd51f9b8386d0764b92cc99bd..aa18bb012dc8839bd5634910a27c1efd99aaa9cf 100644
+--- a/src/main/java/net/minecraft/server/MinecraftServer.java
++++ b/src/main/java/net/minecraft/server/MinecraftServer.java
+@@ -1653,6 +1653,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+         this.profiler.pop();
+         org.spigotmc.WatchdogThread.tick(); // Spigot
+         co.aikar.timings.TimingsManager.FULL_SERVER_TICK.stopTiming(); // Paper
++        world.chiyogami.chiyogamilib.monitor.PerformanceMonitor.setFullServerTickNanoTime(System.nanoTime() - i); // Chiyogami - add ChiyogamiLib
+     }
+ 
+     private void logTickMethodTime(long tickStartTime) {
+@@ -1780,6 +1781,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+ 
+         this.isIteratingOverLevels = true; // Paper - Throw exception on world create while being ticked
+         Iterator iterator = this.getAllLevels().iterator(); // Paper - Throw exception on world create while being ticked; move down
++        long allWorldServerStartTimeNano = System.nanoTime(); // Chiyogami - add ChiyogamiLib
+         while (iterator.hasNext()) {
+             ServerLevel worldserver = (ServerLevel) iterator.next();
+             // Chiyogami start - world threading
+@@ -1788,6 +1790,11 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             worldThread.setWorldTickRunnable(() -> {
+             worldserver.thread = Thread.currentThread();
+             // Chiyogami end
++            // Chiyogami start - add ChiyogamiLib
++            world.chiyogami.chiyogamilib.WorldThreads.worldThreadMap.put(worldserver.getWorld(), Thread.currentThread());
++            world.chiyogami.chiyogamilib.scheduler.WorldThreadRunnable.worldThreadHeartBeat(worldserver.getWorld(), currentTick);
++            long worldServerStartTimeNano = System.nanoTime();
++            // Chiyogami end
+             worldserver.hasPhysicsEvent = org.bukkit.event.block.BlockPhysicsEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - BlockPhysicsEvent
+             worldserver.hasEntityMoveEvent = io.papermc.paper.event.entity.EntityMoveEvent.getHandlerList().getRegisteredListeners().length > 0; // Paper - Add EntityMoveEvent
+             net.minecraft.world.level.block.entity.HopperBlockEntity.skipHopperEvents = worldserver.paperConfig().hopper.disableMoveEvent || org.bukkit.event.inventory.InventoryMoveItemEvent.getHandlerList().getRegisteredListeners().length == 0; // Paper - Perf: Optimize Hoppers
+@@ -1822,10 +1829,14 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+             this.profiler.pop();
+             this.profiler.pop();
+             worldserver.explosionDensityCache.clear(); // Paper - Optimize explosions
++            // Chiyogami start - add ChiyogamiLib
++            world.chiyogami.chiyogamilib.monitor.PerformanceMonitor.getWorldTickNanoTimeMap().put(worldserver.getWorld(), System.nanoTime() - worldServerStartTimeNano);
++            // Chiyogami end
+             });} // Chiyogami - world threading
+         }
+         world.chiyogami.thread.WorldThreadPool.doTick(this.levels.values()); // Chiyogami - world threading
+         this.isIteratingOverLevels = false; // Paper - Throw exception on world create while being ticked
++        world.chiyogami.chiyogamilib.monitor.PerformanceMonitor.setAllWorldTickNanoTime(System.nanoTime() - allWorldServerStartTimeNano); // Chiyogami - add ChiyogamiLib
+ 
+         this.profiler.popPush("connection");
+         MinecraftTimings.connectionTimer.startTiming(); // Spigot // Paper

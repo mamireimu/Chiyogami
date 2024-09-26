@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Thu, 26 Sep 2024 20:46:07 +0900
+Subject: [PATCH] fix world task scheduler
+
+
+diff --git a/src/main/java/org/bukkit/World.java b/src/main/java/org/bukkit/World.java
+index d826babe9466d21b4eaf72061a22b77293298baa..a715347104038d8a1a8befa5cc7d70cdb41cf150 100644
+--- a/src/main/java/org/bukkit/World.java
++++ b/src/main/java/org/bukkit/World.java
+@@ -65,7 +65,7 @@ public interface World extends RegionAccessor, WorldInfo, PluginMessageRecipient
+      * @param runnable Tasks in runnable.
+      * @param delay Delay in executing a task.
+      */
+-    default void scheduleTask(Runnable runnable, long delay){scheduleTask(runnable, 0, delay);}
++    default void scheduleTask(Runnable runnable, long delay){scheduleTask(runnable, delay, 0);}
+ 
+     /**
+      * Schedules a task to the thread executing this world.

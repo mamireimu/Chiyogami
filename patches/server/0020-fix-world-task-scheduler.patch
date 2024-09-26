@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: bea4dev <bea0224@outlook.jp>
+Date: Thu, 26 Sep 2024 20:46:07 +0900
+Subject: [PATCH] fix world task scheduler
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+index 5d08442e7c18a0be7eb66c017e5bce846eb5eaaa..dcb686420f489f5d46d78bad65e8be3d4aa77301 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftWorld.java
+@@ -2473,7 +2473,7 @@ public class CraftWorld extends CraftRegionAccessor implements World {
+ 
+     // Chiyogami start - thread
+     @Override
+-    public void scheduleTask(Runnable runnable, long period, long delay) {
++    public void scheduleTask(Runnable runnable, long delay, long period) {
+         if (runnable instanceof world.chiyogami.thread.WorldThreadRunnable) {
+             world.chiyogami.thread.WorldThread worldThread = this.getHandle().worldThread;
+             worldThread.scheduleWorldThreadRunnable((world.chiyogami.thread.WorldThreadRunnable) runnable);

@@ -19,7 +19,7 @@ Notes
 
 API
 ------
-APIは未公開です
+[ChiyogamiLib](https://github.com/bea4dev/ChiyogamiLib/tree/master)
 
 How to build
 ------
