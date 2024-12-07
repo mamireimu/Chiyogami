@@ -4,6 +4,13 @@ on:
   push:
     branches: [ "**" ]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Choose an environment"
+        required: true
+        default: "production"
+        type: string
 
 jobs:
   build:
